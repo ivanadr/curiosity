@@ -1,8 +1,8 @@
 # curiosity
 Inquiries into statistics, economics, econometrics, python and data science
 
-# [Exploring bias in default commands for variance, covariance and correlation in Numpy and Pandas](https://github.com/ivanadr/curiosity/blob/main/Biased%20unbiased.ipynb) 
-* 📓 [Biased unbiased.ipynb](https://github.com/ivanadr/curiosity/blob/main/Biased%20unbiased.ipynb) 
+# [Exploring bias in default commands for variance, covariance and correlation in Numpy and Pandas](https://github.com/ivanadr/math-curiosity/blob/main/Biased%20unbiased.ipynb) 
+* 📓 [Biased unbiased.ipynb](https://github.com/ivanadr/math-curiosity/blob/main/Biased%20unbiased.ipynb) 
 
 **Motivation**   
 Inquiry into implementation of bias into python functions calculating variance, covariance and correlation.   
