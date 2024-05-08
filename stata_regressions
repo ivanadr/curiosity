@@ -1,0 +1,78 @@
+## Stata Do-File: Data Preparation and Analysis
+
+```stata
+* Path
+local output ""
+cd "`output'"
+
+* Run the do files for 1998 and 2006
+do "`output'\_1_Data Preparation_1998.do"
+do "`output'\_2_Data Preparation_2006.do"
+
+* Append the dataset (1998-2006)
+use "`output'\1998_rev.dta", clear
+append using "`output'\2006_rev.dta", force
+
+* Create a variable to tag period after Khul reform 
+gen post=(year==2006)
+
+***Summary statistics
+sum married divorced  widowed 
+bys year: sum married divorced widowed
+
+* Keep only married
+keep if married==1
+
+*Regression Sample: Summary Statistics
+sum age i.educ age_marriage hhsize urban working_husband i.educ_husband working_3mos avg_days_worked part_time
+by year: sum age i.educ age_marriage hhsize urban working_husband i.educ_husband working_3mos avg_days_worked part_time
+bys treatment: sum age i.educ age_marriage hhsize urban working_husband i.educ_husband working_3mos avg_days_worked part_time
+
+sum avg_days_worked part_time
+bys year: sum avg_days_worked part_time
+bys treatment: sum avg_days_worked part_time
+
+* Label variables 
+label var working_3 "Currently working"
+label var avg_days_worked "Days worked (week)"
+label var lhrs "Log (Hours worked per week)"
+label var part_time "Part-time Employment (<40 hrs per week)"
+label var post "Post"
+label var treatment "Treated"
+label var lfp "Labor Force Participation"
+
+***Recode days work per week and part-time
+
+*(2) Days work per week
+replace avg_days_worked = 0 if avg_days_worked == .   
+
+*(3) Part-time employment (<40 hrs)
+replace part_time = 0 if hrs_per_week== 0
+
+
+* Main Regression
+foreach y_emp in lfp working_3 avg_days_worked part_time {
+    reg `y_emp' post##treatment [iw=expan], r cluster (psu) 
+    outreg2 using Results_Mar11.xls, label dec(3)
+    reg `y_emp' post##treatment i.agecat i.educ age_marriage hhsize urban [iw=expan], r cluster (psu) 
+    outreg2 using Results_Mar11.xls, append label dec(3)
+    reg `y_emp' post##treatment i.agecat i.educ age_marriage hhsize urban i.educ_husband working_husband [iw=expan], r cluster (psu)
+    outreg2 using Results_Mar11.xls, append label dec(3)
+}
+
+* Heterogeneous Effects
+** Urban/rural
+foreach y_emp in lfp working_3 avg_days_worked part_time {
+    reg `y_emp' post##treatment i.agecat i.educ age_marriage hhsize i.educ_husband working_husband [iw=expan] if urban==1, r cluster (psu)
+    outreg2 using Results_het_urban.xls, append label cttop("Urban")  dec(3)
+    reg `y_emp' post##treatment i.agecat i.educ age_marriage hhsize i.educ_husband working_husband [iw=expan] if urban==0, r cluster (psu)
+    outreg2 using Results_het_urban.xls, append label cttop("Rural")  dec(3)
+}
+
+** Education level 
+foreach y_emp in lfp working_3 avg_days_worked part_time {
+    forvalues ed_grp = 1/4 {
+        reg `y_emp' post##treatment i.agecat age_marriage hhsize working_husband urban [iw=expan] if educ==`ed_grp', r cluster (psu) 
+        outreg2 using Results_het_ed.xls, append label dec(3)
+    }
+}
